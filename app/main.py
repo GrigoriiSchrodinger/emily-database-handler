@@ -1,19 +1,19 @@
 from fastapi import FastAPI
-from .routers import users
-from .config import settings
-from .database import engine, Base
+from sqlalchemy.testing.suite.test_reflection import users
+
+from app.config import settings
+from app.database import Base, engine
+from app.routers import news
 
 # Создаем все таблицы в базе данных
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title=settings.APP_NAME,
-    description="This is a sample API with a real database.",
     version="1.0.0"
 )
 
-# Подключаем роутер
-app.include_router(users.router)
+app.include_router(news.router)
 
 if __name__ == "__main__":
     import uvicorn

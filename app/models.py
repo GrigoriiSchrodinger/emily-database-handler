@@ -1,9 +1,12 @@
-from sqlalchemy import Column, Integer, String
+import datetime
+from sqlalchemy import Column, Integer, String, DateTime
 from .database import Base
 
-class User(Base):
-    __tablename__ = "users"
+class Post(Base):
+    __tablename__ = "posts"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, index=True)
-    email = Column(String, unique=True, index=True)
+    channel = Column(String, nullable=False)
+    id_post = Column(Integer, nullable=False)
+    time = Column(DateTime, default=datetime.datetime.utcnow)
+    url = Column(String, nullable=False)

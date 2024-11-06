@@ -1,9 +1,9 @@
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
-    APP_NAME: str = "My FastAPI Project"
+    APP_NAME: str = "DataBaseManager"
     PORT: int = 8000
-    DATABASE_URL: str = "sqlite:///./test.db"  # SQLite база данных
+    DATABASE_URL: str = "sqlite:///./database.db"
 
     class Config:
         env_file = ".env"
