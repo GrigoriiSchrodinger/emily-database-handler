@@ -1,14 +1,11 @@
 from pydantic import BaseModel, EmailStr
+from datetime import datetime
 
-class UserBase(BaseModel):
-    name: str
-    email: EmailStr
+class PostBase(BaseModel):
+    channel: str
+    id_post: int
+    time: datetime
+    url: str
 
-class UserCreate(UserBase):
+class NewPost(PostBase):
     pass
-
-class User(UserBase):
-    id: int
-
-    class Config:
-        orm_mode = True
