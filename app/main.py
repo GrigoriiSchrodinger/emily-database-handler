@@ -1,5 +1,4 @@
 from fastapi import FastAPI
-from sqlalchemy.testing.suite.test_reflection import users
 
 from app.config import settings
 from app.database import Base, engine
