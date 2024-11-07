@@ -25,6 +25,6 @@ def create_user(post: schemas.NewPost, db: Session = Depends(get_db)):
 def check_post_exists(channel: str, id_post: int, db: Session = Depends(get_db)):
     db_post = crud.get_post_by_channel_id(db, channel=channel, id_post=id_post)
     if db_post:
-        return {"exists": False}
-    else:
         return {"exists": True}
+    else:
+        return {"exists": False}
