@@ -1,11 +1,14 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 from datetime import datetime
 
 class PostBase(BaseModel):
+    pass
+
+class NewPost(PostBase):
     channel: str
     id_post: int
     time: datetime
     url: str
 
-class NewPost(PostBase):
-    pass
+class NewsExists(PostBase):
+    exists: bool

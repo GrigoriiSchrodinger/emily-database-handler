@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from .. import schemas, crud
 from ..database import SessionLocal
+from ..schemas import NewsExists
 
 router = APIRouter(
     prefix="/news",
@@ -20,10 +21,10 @@ def get_db():
 def create_user(post: schemas.NewPost, db: Session = Depends(get_db)):
     return crud.create_post(db=db, post=post)
 
-@router.get("/exists/{channel}/{id_post}", response_model=bool)
+@router.get("/exists/{channel}/{id_post}", response_model=NewsExists)
 def check_post_exists(channel: str, id_post: int, db: Session = Depends(get_db)):
     db_post = crud.get_post_by_channel_id(db, channel=channel, id_post=id_post)
     if db_post:
-        return True
+        return {"exists": False}
     else:
-        return False
+        return {"exists": True}
