@@ -1,16 +1,27 @@
+import os
+import shutil
+import uuid
+from pathlib import Path
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi import APIRouter, Depends
+from fastapi import File, UploadFile
+from fastapi import HTTPException
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
-from .. import schemas, crud
+
+from .. import crud, schemas
 from ..database import SessionLocal
 from ..schemas import NewsExists
-import os
 
 router = APIRouter(
     prefix="/news",
     tags=["news"]
 )
+
+UPLOAD_DIR = "media"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+
 
 def get_db():
     db = SessionLocal()
@@ -19,32 +30,55 @@ def get_db():
     finally:
         db.close()
 
-
 @router.post("/create", response_model=schemas.PostBase)
-def create_post(
-    post: schemas.NewPost,
-    db: Session = Depends(get_db)
-):
-    media_paths = {"images": [], "videos": []}
-    print(media_paths)
-    if post:
-        for image in post.images:
-            file_path = f"media/img/{image.filename}"
-            with open(file_path, "wb") as f:
-                f.write(image.file.read())
-            media_paths["images"].append(file_path)
+def create_user(post: schemas.NewPost, db: Session = Depends(get_db)):
+    return crud.create_post(db=db, post=post)
 
-    if post:
-        for video in post.videos:
-            file_path = f"media/video/{video.filename}"
-            with open(file_path, "wb") as f:
-                f.write(video.file.read())
-            media_paths["videos"].append(file_path)
 
-    # Создание поста в БД через crud
-    db_post = crud.create_post(db=db, post=post)
+@router.post("/upload-media/{id_post}")
+async def upload_media(id_post: int, files: List[UploadFile] = File(...)):
+    uploaded_files = []
 
-    return db_post
+    # Создаем поддиректорию для конкретного поста
+    post_dir = os.path.join(UPLOAD_DIR, str(id_post))
+    os.makedirs(post_dir, exist_ok=True)
+
+    for file in files:
+        # Проверяем тип файла
+        if not file.content_type.startswith(('image/', 'video/')):
+            raise HTTPException(
+                status_code=400,
+                detail="Разрешены только изображения и видео"
+            )
+
+        file_extension = Path(file.filename).suffix
+        unique_filename = f"{uuid.uuid4()}{file_extension}"
+        file_path = os.path.join(UPLOAD_DIR, unique_filename)
+
+        # Сохраняем файл
+        try:
+            with open(file_path, "wb") as buffer:
+                shutil.copyfileobj(file.file, buffer)
+            uploaded_files.append({
+                "filename": file.filename,
+                "original_name": file.filename,
+                "content_type": file.content_type
+            })
+        except Exception as e:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Ошибка при загрузке файла: {str(e)}"
+            )
+
+    return JSONResponse(
+        content={
+            "message": "Файлы успешно загружены",
+            "id_post": id_post,
+            "files": uploaded_files
+        },
+        status_code=200
+    )
+
 
 @router.get("/exists/{channel}/{id_post}", response_model=NewsExists)
 def check_post_exists(channel: str, id_post: int, db: Session = Depends(get_db)):
