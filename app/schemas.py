@@ -1,3 +1,6 @@
+from typing import  List
+
+from fastapi import UploadFile, File
 from pydantic import BaseModel
 from datetime import datetime
 
@@ -9,6 +12,8 @@ class NewPost(PostBase):
     id_post: int
     time: datetime
     url: str
+    images: List[UploadFile] = File(None)
+    videos: List[UploadFile] = File(None)
 
 class NewsExists(PostBase):
     exists: bool
