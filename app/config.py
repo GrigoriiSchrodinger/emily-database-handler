@@ -1,5 +1,6 @@
 from pydantic_settings import BaseSettings
 
+
 class Settings(BaseSettings):
     APP_NAME: str = "DataBaseManager"
     PORT: int = 8000
@@ -7,5 +8,6 @@ class Settings(BaseSettings):
 
     class Config:
         env_file = ".env"
+
 
 settings = Settings()
