@@ -10,9 +10,13 @@ class PostBase(BaseModel):
 
 class NewPost(PostBase):
     channel: str
+    text: str
     id_post: int
     time: datetime
     url: str
+
+class MediaFile(PostBase):
+    media: list
 
 
 class NewsExists(PostBase):

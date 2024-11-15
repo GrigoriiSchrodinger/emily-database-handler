@@ -36,14 +36,16 @@ def create_user(post: schemas.NewPost, db: Session = Depends(get_db)):
     return crud.create_post(db=db, post=post)
 
 
-@router.post("/upload-media/{id_post}", response_model=schemas.UploadMediaResponse)
-async def upload_media(id_post: int, files: List[UploadFile] = File(...)):
+@router.post("/upload-media/{id_post}/{channel}", response_model=schemas.UploadMediaResponse)
+async def upload_media(id_post: int, channel: str, files: List[UploadFile] = File(...), db: Session = Depends(get_db)):
     """
     Загружает медиафайлы (изображения и видео) для конкретного поста.
     
     Args:
-        id_post (int): Идентификатор поста
-        files (List[UploadFile]): Список файлов для загрузки
+        :param id_post: (int) Идентификатор поста
+        :param files: (List[UploadFile]) Список файлов для загрузки
+        :param db:
+        :param channel: str
     
     Returns:
         JSONResponse: Информация о загруженных файлах
@@ -79,9 +81,7 @@ async def upload_media(id_post: int, files: List[UploadFile] = File(...)):
             # Добавляем информацию о загруженном файле
             uploaded_files.append({
                 "filename": unique_filename,
-                "original_name": file.filename,
                 "content_type": file.content_type,
-                "file_path": file_path
             })
 
         except Exception as e:
@@ -92,11 +92,13 @@ async def upload_media(id_post: int, files: List[UploadFile] = File(...)):
                 status_code=500,
                 detail=f"Ошибка при загрузке файла {file.filename}: {str(e)}"
             )
-
+    print(uploaded_files)
+    crud.add_media_file(db, id_post=id_post, media=uploaded_files, channel=channel)
     return JSONResponse(
         content={
             "message": "Файлы успешно загружены",
             "id_post": id_post,
+            "channel": channel,
             "files": uploaded_files,
             "total_files": len(uploaded_files)
         },
