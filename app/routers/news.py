@@ -57,7 +57,7 @@ async def upload_media(id_post: int, channel: str, files: List[UploadFile] = Fil
     allowed_types = ('image/', 'video/')
 
     # Создаем поддиректорию для конкретного поста
-    post_dir = os.path.join(UPLOAD_DIR, str(id_post))
+    post_dir = os.path.join(UPLOAD_DIR, channel, str(id_post))
     os.makedirs(post_dir, exist_ok=True)
 
     for file in files:
@@ -113,3 +113,56 @@ def check_post_exists(channel: str, id_post: int, db: Session = Depends(get_db))
         return {"exists": True}
     else:
         return {"exists": False}
+
+@router.post("/download-media/{id_post}/{channel}")
+async def download_media(id_post: int, channel: str, db: Session = Depends(get_db)):
+    """
+    Скачивает медиафайлы для конкретного поста.
+    """
+    from fastapi.responses import StreamingResponse
+    import io
+    import zipfile
+    
+    media_files = crud.get_media_by_channel_id(db=db, channel=channel, id_post=id_post)
+    if not media_files:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Медиа файлы для канала {channel}, поста {id_post} отсутствуют"
+        )
+    
+    post_dir = Path(UPLOAD_DIR) / channel / str(id_post)
+    if not post_dir.exists():
+        raise HTTPException(
+            status_code=404,
+            detail=f"Директория для поста {id_post} не найдена"
+        )
+
+    zip_buffer = io.BytesIO()
+    try:
+        with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+            for filename in media_files:
+                file_path = post_dir / filename
+                if not file_path.exists():
+                    continue
+                zip_file.write(file_path, filename)
+        
+        if zip_buffer.tell() == 0:
+            raise HTTPException(
+                status_code=404,
+                detail="Не найдено доступных файлов для скачивания"
+            )
+            
+        zip_buffer.seek(0)
+        return StreamingResponse(
+            zip_buffer,
+            media_type="application/zip",
+            headers={
+                "Content-Disposition": f"attachment; filename=media_{channel}_{id_post}.zip"
+            }
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Ошибка при создании архива: {str(e)}"
+        )
+

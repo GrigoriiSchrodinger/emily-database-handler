@@ -9,6 +9,25 @@ def get_post_by_channel_id(db: Session, channel: str, id_post: int):
         models.Post.id_post == id_post
     ).first()
 
+def get_media_by_channel_id(db: Session, channel: str, id_post: int):
+    media = db.query(models.Post.image, models.Post.video).filter(
+        models.Post.channel == channel,
+        models.Post.id_post == id_post
+    ).first()
+    
+    if not media:
+        return []
+        
+    list_media = []
+    if media.image:
+        list_media.extend(media.image)
+    if media.video:
+        list_media.extend(media.video)
+    
+    return list_media
+
+
+
 def add_media_file(db: Session, media: list, id_post: int, channel: str):
     db_post = db.query(models.Post).filter(models.Post.id_post == id_post, models.Post.channel == channel).first()
     
