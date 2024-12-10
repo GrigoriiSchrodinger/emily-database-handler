@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import FastAPI
 
 from app.config import settings
@@ -15,6 +17,10 @@ app = FastAPI(
 app.include_router(news.router)
 
 if __name__ == "__main__":
-    import uvicorn
+    try:
+        import uvicorn
 
-    uvicorn.run("app.main:app", host="0.0.0.0", port=settings.PORT, reload=True)
+        logging.debug("Starting uvicorn")
+        uvicorn.run("app.main:app", host="0.0.0.0", port=settings.PORT, reload=True)
+    except Exception as error:
+        logging.error(error)

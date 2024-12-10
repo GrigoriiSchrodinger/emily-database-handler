@@ -1,3 +1,4 @@
+import logging
 import os
 import shutil
 import uuid
@@ -9,6 +10,7 @@ from fastapi import File, UploadFile
 from fastapi import HTTPException
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
+from starlette import status
 
 from .. import crud, schemas
 from ..database import SessionLocal
@@ -31,10 +33,47 @@ def get_db():
         db.close()
 
 
+
 @router.post("/create", response_model=schemas.PostBase)
 def create_user(post: schemas.NewPost, db: Session = Depends(get_db)):
     return crud.create_post(db=db, post=post)
 
+
+@router.post("/create/send-news", response_model=schemas.PostBase)
+def create_send_news(post: schemas.SendPost, db: Session = Depends(get_db)):
+    return crud.create_send_news(db=db, post=post)
+
+
+@router.get("/send-news", response_model=schemas.PostSendQueue)
+def get_send_news_by_24_hours(db: Session = Depends(get_db)):
+    return crud.get_texts_last_24_hours_send_news(db)
+
+
+@router.get("/queue", response_model=schemas.PostSendQueue)
+def get_send_news_by_24_hours(db: Session = Depends(get_db)):
+    return crud.get_texts_last_24_hours_queue(db)
+
+@router.post("/create-news-queue", response_model=schemas.PostBase)
+def get_send_news_by_24_hours(post: schemas.CreateNewsQueue, db: Session = Depends(get_db)):
+    return crud.create_news_queue(db, post=post)
+
+@router.post("/create-news-rate", response_model=schemas.PostBase)
+def get_send_news_by_24_hours(post: schemas.CreateNewsRate, db: Session = Depends(get_db)):
+    return crud.create_news_rate(db, post=post)
+
+@router.get("/rate-max-value", response_model=schemas.GetNewsMaxValueResponse)
+def get_rate_seed_with_max_value(db: Session = Depends(get_db)):
+    result = crud.get_news_with_max_rate(db)
+    if result["channel"] == "" and result["content"] == "" and result["id_post"] == 0 and not result["outlinks"]:
+        return JSONResponse(status_code=203, content=result)
+    return result
+
+@router.delete("/delete-news-queue/{channel}/{id_post}", response_model=schemas.BaseModel)
+def delete_news_queue_entry(channel: str, id_post: int, db: Session = Depends(get_db)):
+    entry = crud.delete_queue_entry_by_seed(db, channel=channel, id_post=id_post)
+    if entry is None:
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={"detail": "Запись не найдена"})
+    return entry
 
 @router.post("/upload-media/{id_post}/{channel}", response_model=schemas.UploadMediaResponse)
 async def upload_media(id_post: int, channel: str, files: List[UploadFile] = File(...), db: Session = Depends(get_db)):
@@ -92,7 +131,6 @@ async def upload_media(id_post: int, channel: str, files: List[UploadFile] = Fil
                 status_code=500,
                 detail=f"Ошибка при загрузке файла {file.filename}: {str(e)}"
             )
-    print(uploaded_files)
     crud.add_media_file(db, id_post=id_post, media=uploaded_files, channel=channel)
     return JSONResponse(
         content={
@@ -108,6 +146,7 @@ async def upload_media(id_post: int, channel: str, files: List[UploadFile] = Fil
 
 @router.get("/exists/{channel}/{id_post}", response_model=NewsExists)
 def check_post_exists(channel: str, id_post: int, db: Session = Depends(get_db)):
+    logging.debug("Дернулась ручка /exists/{channel}/{id_post}")
     db_post = crud.get_post_by_channel_id(db, channel=channel, id_post=id_post)
     if db_post:
         return {"exists": True}

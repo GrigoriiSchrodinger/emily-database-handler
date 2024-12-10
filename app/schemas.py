@@ -14,10 +14,40 @@ class NewPost(PostBase):
     id_post: int
     time: datetime
     url: str
+    outlinks: list
+
+class CreateNewsQueue(PostBase):
+    channel: str
+    post_id: int
+
+class CreateNewsRate(PostBase):
+    channel: str
+    post_id: int
+    value: float
+
+class PostSendNews(PostBase):
+    texts: list[str]
+
+class PostSendQueue(PostBase):
+    texts: list[str]
+
+class SendPost(PostBase):
+    channel: str
+    text: str
+    id_post: int
+
+class DeletePostByQueue(PostBase):
+    channel: str
+    id_post: int
 
 class MediaFile(PostBase):
     media: list
 
+class GetNewsMaxValueResponse(PostBase):
+    channel: str
+    content: str
+    id_post: int
+    outlinks: list[str]
 
 class NewsExists(PostBase):
     exists: bool
