@@ -1,6 +1,6 @@
 import datetime
 
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, JSON, Float
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, JSON
 from sqlalchemy.orm import relationship
 
 from app.database import Base
@@ -22,7 +22,6 @@ class AllNews(Base):
 
     send_news = relationship("SendNews", back_populates="all_news")
     queue_entries = relationship("Queue", back_populates="all_news")
-    rate_entries = relationship("Rate", back_populates="all_news")
 
 class SendNews(Base):
     __tablename__ = "send_news"
@@ -49,12 +48,3 @@ class Queue(Base):
     created_at = Column(DateTime, default=datetime.datetime.now())
 
     all_news = relationship("AllNews", back_populates="queue_entries")
-
-class Rate(Base):
-    __tablename__ = "rate"
-
-    id = Column(Integer, primary_key=True, index=True)
-    seed = Column(String, ForeignKey('all_news.seed'), nullable=False)
-    value = Column(Float, nullable=False)
-
-    all_news = relationship("AllNews", back_populates="rate_entries")

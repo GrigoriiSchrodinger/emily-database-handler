@@ -4,3 +4,4 @@ pydantic~=2.9.2
 SQLAlchemy~=2.0.36
 pydantic-settings~=2.6.1
 requests~=2.32.3
+starlette~=0.41.2

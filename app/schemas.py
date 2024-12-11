@@ -26,10 +26,29 @@ class CreateNewsRate(PostBase):
     value: float
 
 class PostSendNews(PostBase):
-    texts: list[str]
+    seed: str
+    text: str
+    created_at: datetime
+
+class DetailBySeed(PostBase):
+    seed: str
+
+class DetailBySeedResponse(PostBase):
+    content: str
+    channel: str
+    id_post: int
+    outlinks: list[str]
+
+class PostSendNewsList(PostBase):
+    send: list[PostSendNews]
 
 class PostSendQueue(PostBase):
-    texts: list[str]
+    seed: str
+    text: str
+    created_at: datetime
+
+class PostSendQueueList(PostBase):
+    queue: list[PostSendQueue]
 
 class SendPost(PostBase):
     channel: str

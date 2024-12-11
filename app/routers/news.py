@@ -44,36 +44,21 @@ def create_send_news(post: schemas.SendPost, db: Session = Depends(get_db)):
     return crud.create_send_news(db=db, post=post)
 
 
-@router.get("/send-news", response_model=schemas.PostSendQueue)
+@router.get("/send-news", response_model=schemas.PostSendNewsList)
 def get_send_news_by_24_hours(db: Session = Depends(get_db)):
-    return crud.get_texts_last_24_hours_send_news(db)
+    return {"send": crud.get_texts_last_24_hours_send_news(db)}
 
+@router.get("/detail-by-seed/{seed}", response_model=schemas.DetailBySeedResponse)
+def get_send_news_by_24_hours(seed: str, db: Session = Depends(get_db)):
+    return crud.get_post_details_by_seed(seed=seed, db=db)
 
-@router.get("/queue", response_model=schemas.PostSendQueue)
-def get_send_news_by_24_hours(db: Session = Depends(get_db)):
-    return crud.get_texts_last_24_hours_queue(db)
+@router.get("/queue", response_model=schemas.PostSendQueueList)
+def get_queue_news_by_24_hours(db: Session = Depends(get_db)):
+    return {"queue": crud.get_texts_last_24_hours_queue(db)}
 
 @router.post("/create-news-queue", response_model=schemas.PostBase)
 def get_send_news_by_24_hours(post: schemas.CreateNewsQueue, db: Session = Depends(get_db)):
     return crud.create_news_queue(db, post=post)
-
-@router.post("/create-news-rate", response_model=schemas.PostBase)
-def get_send_news_by_24_hours(post: schemas.CreateNewsRate, db: Session = Depends(get_db)):
-    return crud.create_news_rate(db, post=post)
-
-@router.get("/rate-max-value", response_model=schemas.GetNewsMaxValueResponse)
-def get_rate_seed_with_max_value(db: Session = Depends(get_db)):
-    result = crud.get_news_with_max_rate(db)
-    if result["channel"] == "" and result["content"] == "" and result["id_post"] == 0 and not result["outlinks"]:
-        return JSONResponse(status_code=203, content=result)
-    return result
-
-@router.delete("/delete-news-queue/{channel}/{id_post}", response_model=schemas.BaseModel)
-def delete_news_queue_entry(channel: str, id_post: int, db: Session = Depends(get_db)):
-    entry = crud.delete_queue_entry_by_seed(db, channel=channel, id_post=id_post)
-    if entry is None:
-        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={"detail": "Запись не найдена"})
-    return entry
 
 @router.post("/upload-media/{id_post}/{channel}", response_model=schemas.UploadMediaResponse)
 async def upload_media(id_post: int, channel: str, files: List[UploadFile] = File(...), db: Session = Depends(get_db)):
@@ -205,3 +190,9 @@ async def download_media(id_post: int, channel: str, db: Session = Depends(get_d
             detail=f"Ошибка при создании архива: {str(e)}"
         )
 
+@router.delete("/delete-news-queue/{channel}/{id_post}", response_model=schemas.BaseModel)
+def delete_news_queue_entry(channel: str, id_post: int, db: Session = Depends(get_db)):
+    entry = crud.delete_queue_entry_by_seed(db, channel=channel, id_post=id_post)
+    if entry is None:
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={"detail": "Запись не найдена"})
+    return entry
