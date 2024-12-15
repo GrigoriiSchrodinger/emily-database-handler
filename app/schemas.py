@@ -39,6 +39,17 @@ class DetailBySeedResponse(PostBase):
     id_post: int
     outlinks: list[str]
 
+class DetailByChannelIdPost(PostBase):
+    channel: str
+    id_post: int
+
+class DetailByChannelIdPostResponse(PostBase):
+    content: str
+    channel: str
+    id_post: int
+    outlinks: list[str]
+
+
 class PostSendNewsList(PostBase):
     send: list[PostSendNews]
 

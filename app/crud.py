@@ -30,6 +30,10 @@ def get_post_details_by_seed(db: Session, seed: str):
     except NoResultFound:
         return None
 
+def get_post_details_by_channel_id_post(db: Session, channel: str, id_post: int):
+    seed = generate_unique_number(channel=channel, id_post=id_post)
+    return get_post_details_by_seed(db=db, seed=seed)
+
 def get_post_text_last_6_hours(db: Session, model):
     entries = db.query(model).filter(model.created_at >= get_6_hours()).all()
     return [

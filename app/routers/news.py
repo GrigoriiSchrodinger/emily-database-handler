@@ -48,13 +48,17 @@ def create_send_news(post: schemas.SendPost, db: Session = Depends(get_db)):
 def get_send_news_by_24_hours(db: Session = Depends(get_db)):
     return {"send": crud.get_texts_last_24_hours_send_news(db)}
 
-@router.get("/detail-by-seed/{seed}", response_model=schemas.DetailBySeedResponse)
-def get_send_news_by_24_hours(seed: str, db: Session = Depends(get_db)):
-    return crud.get_post_details_by_seed(seed=seed, db=db)
-
 @router.get("/queue", response_model=schemas.PostSendQueueList)
 def get_queue_news_by_24_hours(db: Session = Depends(get_db)):
     return {"queue": crud.get_texts_last_24_hours_queue(db)}
+
+@router.get("/detail-by-seed/{seed}", response_model=schemas.DetailBySeedResponse)
+def get_detail_news_by_seed(seed: str, db: Session = Depends(get_db)):
+    return crud.get_post_details_by_seed(seed=seed, db=db)
+
+@router.get("/detail-by-channel-id_post/{channel}/{id_post}", response_model=schemas.DetailByChannelIdPostResponse)
+def get_detail_news_by_channel_id_post(channel: str, id_post: int, db: Session = Depends(get_db)):
+    return crud.get_post_details_by_channel_id_post(channel=channel, id_post=id_post, db=db)
 
 @router.post("/create-news-queue", response_model=schemas.PostBase)
 def get_send_news_by_24_hours(post: schemas.CreateNewsQueue, db: Session = Depends(get_db)):
