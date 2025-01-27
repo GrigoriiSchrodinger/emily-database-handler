@@ -38,6 +38,8 @@ class DetailBySeedResponse(PostBase):
     channel: str
     id_post: int
     outlinks: list[str]
+    new_content: str | None
+    media_resolution: bool
 
 class DetailByChannelIdPost(PostBase):
     channel: str
@@ -48,6 +50,7 @@ class DetailByChannelIdPostResponse(PostBase):
     channel: str
     id_post: int
     outlinks: list[str]
+    new_content: str | None
 
 
 class PostSendNewsList(PostBase):
@@ -63,12 +66,31 @@ class PostSendQueueList(PostBase):
 
 class SendPost(PostBase):
     channel: str
-    text: str
     id_post: int
+
+class ModifiedPost(PostBase):
+    channel: str
+    id_post: int
+    text: str
+
+class UpdateModifiedPost(PostBase):
+    channel: str
+    id_post: int
+    new_text: str
+
+class ModifiedTextResponse(PostBase):
+    text: str
 
 class DeletePostByQueue(PostBase):
     channel: str
     id_post: int
+
+class AddNewsModerQueue(PostBase):
+    channel: str
+    id_post: int
+
+class GetNewsModerQueue(PostBase):
+    seed: list[str]
 
 class MediaFile(PostBase):
     media: list
@@ -95,3 +117,12 @@ class UploadMediaResponse(BaseModel):
     id_post: int
     files: List[UploadedFileInfo]
     total_files: int
+
+class SettingAutomaticSendingResponse(BaseModel):
+    automatic_sending: bool
+
+class ToggleMediaResolution(PostBase):
+    seed: str
+
+class ToggleMediaResolutionResponse(PostBase):
+    media_resolution: bool

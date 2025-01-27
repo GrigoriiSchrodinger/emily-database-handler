@@ -43,7 +43,6 @@ def create_user(post: schemas.NewPost, db: Session = Depends(get_db)):
 def create_send_news(post: schemas.SendPost, db: Session = Depends(get_db)):
     return crud.create_send_news(db=db, post=post)
 
-
 @router.get("/send-news", response_model=schemas.PostSendNewsList)
 def get_send_news_by_24_hours(db: Session = Depends(get_db)):
     return {"send": crud.get_texts_last_24_hours_send_news(db)}
@@ -63,6 +62,39 @@ def get_detail_news_by_channel_id_post(channel: str, id_post: int, db: Session =
 @router.post("/create-news-queue", response_model=schemas.PostBase)
 def get_send_news_by_24_hours(post: schemas.CreateNewsQueue, db: Session = Depends(get_db)):
     return crud.create_news_queue(db, post=post)
+
+@router.post("/create-modified-news", response_model=schemas.PostBase)
+def create_modified_news(post: schemas.ModifiedPost, db: Session = Depends(get_db)):
+    return crud.create_modified_news(db, post=post)
+
+@router.post("/update-modified-news", response_model=schemas.PostBase)
+def update_modified_news(post: schemas.UpdateModifiedPost, db: Session = Depends(get_db)):
+    return crud.update_modified_text(db, post=post)
+
+@router.get("/modified-text/{id_post}/{channel}", response_model=schemas.ModifiedTextResponse)
+def get_modified_text(channel: str, id_post: int, db: Session = Depends(get_db)):
+    return crud.get_modified_text_by_channel_id_post(db, channel=channel, id_post=id_post)
+
+@router.post("/add-news-moder-queue", response_model=schemas.PostBase)
+def add_news_moder_queue(post: schemas.AddNewsModerQueue, db: Session = Depends(get_db)):
+    return crud.add_news_to_moder_queue(db, post=post)
+
+@router.get("/get-news-moder-queue-for-send", response_model=schemas.GetNewsModerQueue)
+def get_news_moder_queue(db: Session = Depends(get_db)):
+    return {"seed": crud.get_news_moder_queue_for_send(db)}
+
+@router.delete("/delete-news-moder-queue/{seed}", response_model=schemas.BaseModel)
+def delete_news_moder_queue(seed: str, db: Session = Depends(get_db)):
+    logging.info(f"Попытка удаления записи из очереди модерации с seed: {seed}")
+    entry = crud.delete_news_moder_queue_by_seed(db, seed=seed)
+    if entry is None:
+        logging.warning(f"Запись с seed: {seed} не найдена в очереди модерации")
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content={"detail": "Запись не найдена"}
+        )
+    logging.info(f"Запись с seed: {seed} успешно удалена из очереди модерации")
+    return entry
 
 @router.post("/upload-media/{id_post}/{channel}", response_model=schemas.UploadMediaResponse)
 async def upload_media(id_post: int, channel: str, files: List[UploadFile] = File(...), db: Session = Depends(get_db)):
@@ -200,3 +232,19 @@ def delete_news_queue_entry(channel: str, id_post: int, db: Session = Depends(ge
     if entry is None:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={"detail": "Запись не найдена"})
     return entry
+
+@router.get("/automatic-sending", response_model=schemas.SettingAutomaticSendingResponse)
+def get_setting(db: Session = Depends(get_db)):
+    return crud.get_automatic_sending(db)
+
+@router.post("/toggle-automatic-sending", response_model=schemas.BaseModel)
+def toggle_automatic_sending(db: Session = Depends(get_db)):
+    return crud.toggle_automatic_sending(db)
+
+@router.post("/toggle-media-resolution-by-seed", response_model=schemas.BaseModel)
+def toggle_media_resolution(seed: schemas.ToggleMediaResolution, db: Session = Depends(get_db)):
+    return crud.toggle_media_resolution_by_seed(seed=seed.seed, db=db)
+
+@router.post("/media-resolution-by-seed", response_model=schemas.ToggleMediaResolutionResponse)
+def toggle_media_resolution(seed: schemas.ToggleMediaResolution, db: Session = Depends(get_db)):
+    return crud.get_media_resolution_by_seed(seed=seed.seed, db=db)
