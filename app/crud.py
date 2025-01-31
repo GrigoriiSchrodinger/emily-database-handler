@@ -155,7 +155,7 @@ def create_modified_news(db: Session, post: schemas.ModifiedPost):
     db.refresh(db_post)
     return db_post
 
-def update_modified_text(db: Session, post: schemas.UpdateModifiedPost):
+def update_text_news(db: Session, post: schemas.UpdateModifiedPost):
     seed = generate_unique_number(channel=post.channel, id_post=post.id_post)
     modified_text = db.query(models.ModifiedText).filter(models.ModifiedText.seed == seed).first()
 

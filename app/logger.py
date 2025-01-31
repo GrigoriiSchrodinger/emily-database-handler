@@ -2,51 +2,63 @@ import json
 import logging
 
 import requests
-from fastapi import FastAPI
 
-app = FastAPI()
 
 
 class LokiHandler(logging.Handler):
     def __init__(self, url, tags):
         super().__init__()
         self.url = url
-        self.tags = tags
+        self.base_tags = tags
 
     def emit(self, record):
-        log_entry = self.format(record)
-        tags_with_level = {
-            **self.tags,
-            "level": record.levelname,
-            "module": record.module,
-            "function": record.funcName,
-            "time": record.created
-        }
-
-        payload = {
-            "streams": [
-                {
-                    "stream": tags_with_level,
-                    "values": [
-                        [str(int(record.created * 1e9)), log_entry]
-                    ]
-                }
-            ]
-        }
-        headers = {'Content-Type': 'application/json'}
         try:
+            tags = {
+                **self.base_tags,
+                **getattr(record, 'tags', {}),
+                "level": record.levelname,
+                "module": record.module,
+                "function": record.funcName
+            }
+
+            # Преобразуем числовые значения
+            numeric_fields = {}
+            for key, value in tags.items():
+                if isinstance(value, (int, float)):
+                    numeric_fields[key] = value
+                    tags[key] = str(value)
+
+            log_entry = self.format(record)
+            
+            payload = {
+                "streams": [
+                    {
+                        "stream": tags,
+                        "values": [
+                            [
+                                str(int(record.created * 1e9)),
+                                json.dumps({
+                                    "message": log_entry,
+                                    **numeric_fields
+                                })
+                            ]
+                        ]
+                    }
+                ]
+            }
+            
+            headers = {'Content-Type': 'application/json'}
             response = requests.post(self.url, data=json.dumps(payload), headers=headers)
             response.raise_for_status()
-        except requests.exceptions.RequestException as e:
-            print(f"Failed to send log to Loki: {e}, Response: {getattr(e.response, 'text', 'No response')}")
+        except Exception as e:
+            print(f"Loki logging error: {str(e)}")
 
 
-# Настройка логгера uvicorn
-uvicorn_logger = logging.getLogger("uvicorn")
-uvicorn_logger.handlers = []  # Удаляем существующие обработчики
+logger = logging.getLogger("DataBaseManager")
+logger.setLevel(logging.DEBUG)
+
 loki_handler = LokiHandler(
     url="http://localhost:3100/loki/api/v1/push",
     tags={"project": "DataBaseManager"},
 )
-uvicorn_logger.addHandler(loki_handler)  # Добавляем LokiHandler
-uvicorn_logger.setLevel(logging.DEBUG)  # Устанавливаем уровень логирования
+logger.addHandler(loki_handler)
