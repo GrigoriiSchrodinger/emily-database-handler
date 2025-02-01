@@ -1,4 +1,3 @@
-import logging
 import os
 import shutil
 import uuid
@@ -11,7 +10,8 @@ from fastapi import HTTPException
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
-from .. import crud, schemas
+from .. import schemas
+from ..cruds import media_crud
 from ..database import SessionLocal
 
 router = APIRouter(
@@ -86,7 +86,7 @@ async def upload_media(id_post: int, channel: str, files: List[UploadFile] = Fil
                 status_code=500,
                 detail=f"Ошибка при загрузке файла {file.filename}: {str(e)}"
             )
-    crud.add_media_file(db, id_post=id_post, media=uploaded_files, channel=channel)
+    media_crud.add_media_file(db, id_post=id_post, media=uploaded_files, channel=channel)
     return JSONResponse(
         content={
             "message": "Файлы успешно загружены",
@@ -107,7 +107,7 @@ async def download_media(id_post: int, channel: str, db: Session = Depends(get_d
     import io
     import zipfile
 
-    media_files = crud.get_media_by_channel_id(db=db, channel=channel, id_post=id_post)
+    media_files = media_crud.get_media_by_channel_id(db=db, channel=channel, id_post=id_post)
     if not media_files:
         raise HTTPException(
             status_code=404,

@@ -20,18 +20,10 @@ class CreateNewsQueue(PostBase):
     channel: str
     post_id: int
 
-class CreateNewsRate(PostBase):
-    channel: str
-    post_id: int
-    value: float
-
 class PostSendNews(PostBase):
     seed: str
     text: str
     created_at: datetime
-
-class DetailBySeed(PostBase):
-    seed: str
 
 class DetailBySeedResponse(PostBase):
     content: str
@@ -40,10 +32,6 @@ class DetailBySeedResponse(PostBase):
     outlinks: list[str]
     new_content: str | None
     media_resolution: bool
-
-class DetailByChannelIdPost(PostBase):
-    channel: str
-    id_post: int
 
 class DetailByChannelIdPostResponse(PostBase):
     content: str
@@ -77,29 +65,6 @@ class UpdateModifiedPost(PostBase):
     channel: str
     id_post: int
     new_text: str
-
-class ModifiedTextResponse(PostBase):
-    text: str
-
-class DeletePostByQueue(PostBase):
-    channel: str
-    id_post: int
-
-class AddNewsModerQueue(PostBase):
-    channel: str
-    id_post: int
-
-class GetNewsModerQueue(PostBase):
-    seed: list[str]
-
-class MediaFile(PostBase):
-    media: list
-
-class GetNewsMaxValueResponse(PostBase):
-    channel: str
-    content: str
-    id_post: int
-    outlinks: list[str]
 
 class NewsExists(PostBase):
     exists: bool
