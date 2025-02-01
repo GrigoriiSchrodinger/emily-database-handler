@@ -40,7 +40,7 @@ class LokiHandler(logging.Handler):
                                 json.dumps({
                                     "message": log_entry,
                                     **numeric_fields
-                                })
+                                }, ensure_ascii=False)
                             ]
                         ]
                     }
