@@ -1,7 +1,7 @@
-fastapi~=0.115.4
-uvicorn~=0.32.0
-pydantic~=2.9.2
-SQLAlchemy~=2.0.36
-pydantic-settings~=2.6.1
-requests~=2.32.3
-starlette~=0.41.2
+fastapi==0.115.8
+pydantic==2.10.6
+pydantic_settings==2.7.1
+Requests==2.32.3
+SQLAlchemy==2.0.38
+starlette==0.45.3
+uvicorn==0.34.0
