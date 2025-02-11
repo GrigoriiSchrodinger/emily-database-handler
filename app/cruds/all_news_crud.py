@@ -24,7 +24,7 @@ def create_post(db: Session, post: schemas.NewPost):
         db.add(db_post)
         db.commit()
         db.refresh(db_post)
-        logger.success(
+        logger.info(
             "Post created successfully", 
             extra={"tags": {"seed": db_post.seed, "channel": post.channel}}
         )
