@@ -8,6 +8,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    environment: Schrodinger
 
     steps:
     - name: Checkout code
@@ -22,6 +23,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: build
+    environment: Schrodinger
 
     steps:
     - name: Checkout code
