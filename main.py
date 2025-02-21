@@ -6,7 +6,6 @@ from app.database import Base, engine
 from app.logger import logger
 from app.routers import all_news, send_news, queue, modified_text, media, setting_routers
 
-# Создаем все таблицы в базе данных
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
@@ -27,7 +26,6 @@ async def log_requests(request: Request, call_next):
     response = await call_next(request)
     process_time = time.time() - start_time
     
-    # Получаем шаблон пути из роутера
     route = request.scope.get("route")
     path_template = route.path if route else request.url.path
     
