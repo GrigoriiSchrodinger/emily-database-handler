@@ -22,23 +22,114 @@ jobs:
         with:
           scan-type: 'fs'
           ignore-unfixed: true
-          format: 'table'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
           severity: 'CRITICAL,HIGH'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-results.sarif'
           
       - name: Run Safety Check
+        id: safety
         run: |
           pip install safety
-          safety check
+          safety check --json > safety-results.json || true
+          echo "SAFETY_OUTPUT<<EOF" >> $GITHUB_ENV
+          cat safety-results.json >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
           
       - name: OWASP Dependency Check
         uses: dependency-check/Dependency-Check_Action@main
         with:
           project: 'My Project'
           path: '.'
-          format: 'HTML'
+          format: 'JSON'
           args: >
             --failOnCVSS 7
             --enableRetired
+            --out dependency-check-report.json
+
+      - name: Create Security Report Comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            
+            // Читаем результаты сканирований
+            let safetyResults = [];
+            try {
+              safetyResults = JSON.parse(fs.readFileSync('safety-results.json', 'utf8'));
+            } catch (e) {
+              console.log('No Safety results found');
+            }
+            
+            let dependencyCheckResults = [];
+            try {
+              const dcReport = JSON.parse(fs.readFileSync('dependency-check-report.json', 'utf8'));
+              dependencyCheckResults = dcReport.dependencies || [];
+            } catch (e) {
+              console.log('No Dependency Check results found');
+            }
+            
+            // Формируем комментарий
+            let comment = '## 🛡️ Security Scan Results\n\n';
+            
+            // Добавляем результаты Safety
+            if (safetyResults.length > 0) {
+              comment += '### Safety Scan Results\n';
+              safetyResults.forEach(vuln => {
+                comment += `- 🚨 **${vuln.package}**: ${vuln.vulnerability}\n`;
+                comment += `  - Affected versions: ${vuln.affected}\n`;
+                comment += `  - More info: ${vuln.more_info}\n\n`;
+              });
+            }
+            
+            // Добавляем результаты Dependency Check
+            const vulnerableDeps = dependencyCheckResults.filter(dep => dep.vulnerabilities);
+            if (vulnerableDeps.length > 0) {
+              comment += '### Dependency Check Results\n';
+              vulnerableDeps.forEach(dep => {
+                comment += `- 📦 **${dep.fileName}**\n`;
+                dep.vulnerabilities.forEach(vuln => {
+                  comment += `  - 🚨 ${vuln.name}: ${vuln.description}\n`;
+                  comment += `    - Severity: ${vuln.severity}\n`;
+                  if (vuln.references) {
+                    comment += `    - Reference: ${vuln.references[0].url}\n`;
+                  }
+                });
+                comment += '\n';
+              });
+            }
+            
+            // Добавляем комментарий к PR
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            
+            const botComment = comments.find(comment => 
+              comment.user.type === 'Bot' && 
+              comment.body.includes('Security Scan Results')
+            );
+            
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: comment
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: comment
+              });
+            }
 
   build-and-deploy:
     runs-on: ubuntu-latest
