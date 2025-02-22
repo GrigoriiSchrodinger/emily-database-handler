@@ -35,6 +35,9 @@ jobs:
           # Создаем volume если его еще нет
           docker volume create ${{ github.event.repository.name }}_data || true
           
+          # Создаем сеть, если она не существует
+          docker network inspect app >/dev/null 2>&1 || docker network create app
+          
           # Если есть старый контейнер, останавливаем и удаляем его
           docker stop ${{ github.event.repository.name }}-container || true
           docker rm ${{ github.event.repository.name }}-container || true
