@@ -14,7 +14,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Get repository name
+    - name: Set environment variables
       run: |
         REPO_NAME=$(echo '${{ github.repository }}' | awk -F '/' '{print $2}' | tr '[:upper:]' '[:lower:]')
         echo "REPO_NAME=$REPO_NAME" >> $GITHUB_ENV
@@ -34,7 +34,7 @@ jobs:
       with:
         context: .
         push: true
-        tags: ghcr.io/${{ github.repository_owner }}/${{ env.REPO_NAME }}:latest
+        tags: ghcr.io/${{ env.REPO_NAME }}:latest
 
   deploy:
     runs-on: ubuntu-latest
@@ -42,7 +42,7 @@ jobs:
     environment: Schrodinger
 
     steps:
-    - name: Get repository name
+    - name: Set environment variables
       run: |
         REPO_NAME=$(echo '${{ github.repository }}' | awk -F '/' '{print $2}' | tr '[:upper:]' '[:lower:]')
         echo "REPO_NAME=$REPO_NAME" >> $GITHUB_ENV
@@ -56,8 +56,8 @@ jobs:
       run: |
         ssh -o StrictHostKeyChecking=no ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} << 'ENDSSH'
           docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
-          docker pull ghcr.io/${{ github.repository_owner }}/${{ env.REPO_NAME }}:latest
+          docker pull ghcr.io/${{ env.REPO_NAME }}:latest
           docker stop ${{ env.REPO_NAME }}-container || true
           docker rm ${{ env.REPO_NAME }}-container || true
-          docker run -d --name ${{ env.REPO_NAME }}-container -p 8000:8000 ghcr.io/${{ github.repository_owner }}/${{ env.REPO_NAME }}:latest
+          docker run -d --name ${{ env.REPO_NAME }}-container -p 8000:8000 ghcr.io/${{ env.REPO_NAME }}:latest
         ENDSSH
