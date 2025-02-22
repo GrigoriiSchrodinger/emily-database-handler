@@ -32,9 +32,6 @@ jobs:
     - name: Deploy on remote server
       run: |
         ssh -o StrictHostKeyChecking=no ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} << 'EOF'
-          # Создаем сеть если её еще нет
-          docker network create app || true
-          
           # Создаем volume если его еще нет
           docker volume create ${{ github.event.repository.name }}_data || true
           
@@ -45,8 +42,8 @@ jobs:
           # Запускаем новый контейнер с подключенным volume и сетью
           docker run -d \
             --name ${{ github.event.repository.name }}-container \
-            --network app \
             -p 8000:8000 \
             -v ${{ github.event.repository.name }}_data:/app/data \
+            --network app \
             ${{ github.event.repository.name }}:latest
         EOF
