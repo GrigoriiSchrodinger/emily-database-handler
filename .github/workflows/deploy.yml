@@ -32,7 +32,17 @@ jobs:
     - name: Deploy on remote server
       run: |
         ssh -o StrictHostKeyChecking=no ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} << 'EOF'
+          # Создаем volume если его еще нет
+          docker volume create ${{ github.event.repository.name }}_data || true
+          
+          # Если есть старый контейнер, останавливаем и удаляем его
           docker stop ${{ github.event.repository.name }}-container || true
           docker rm ${{ github.event.repository.name }}-container || true
-          docker run -d --name ${{ github.event.repository.name }}-container -p 8000:8000 ${{ github.event.repository.name }}:latest
+          
+          # Запускаем новый контейнер с подключенным volume
+          docker run -d \
+            --name ${{ github.event.repository.name }}-container \
+            -p 8000:8000 \
+            -v ${{ github.event.repository.name }}_data:/app/data \
+            ${{ github.event.repository.name }}:latest
         EOF
