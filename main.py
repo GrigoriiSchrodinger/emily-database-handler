@@ -2,11 +2,12 @@ import logging
 import time
 from fastapi import FastAPI, Request
 from app.config import settings
-from app.database import Base, engine
+from app.database import init_db
 from app.logger import logger
 from app.routers import all_news, send_news, queue, modified_text, media, setting_routers
 
-Base.metadata.create_all(bind=engine)
+# Инициализируем базу данных и настройки
+init_db()
 
 app = FastAPI(
     title=settings.APP_NAME,
