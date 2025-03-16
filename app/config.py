@@ -1,5 +1,6 @@
 from pydantic_settings import BaseSettings
-
+import os
+from dotenv import load_dotenv
 
 class Settings(BaseSettings):
     APP_NAME: str = "DataBaseManager"
@@ -11,3 +12,6 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+load_dotenv()
+ENV = os.getenv('ENV', "localhost")
