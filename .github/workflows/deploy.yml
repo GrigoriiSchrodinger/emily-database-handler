@@ -32,6 +32,14 @@ jobs:
       - name: Deploy on remote server
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} << 'EOF'
+            # Проверка Docker
+            echo "Проверка статуса Docker:"
+            systemctl status docker | head -n 3
+            
+            # Проверка доступного места
+            echo "Доступное место на диске:"
+            df -h | grep -E '/$|/var'
+            
             # Создаем volume если его еще нет
             docker volume create ${{ github.event.repository.name }}_data || true
           
@@ -50,13 +58,40 @@ jobs:
             ENV=production
             EOL
           
+            # Проверяем образ
+            echo "Проверка наличия образа:"
+            docker images | grep ${{ github.event.repository.name }}
+            
             # Запускаем новый контейнер с подключенным volume и сетью
-            docker run -d \
+            echo "Запускаем контейнер..."
+            CONTAINER_ID=$(docker run -d \
               --name ${{ github.event.repository.name }} \
               -p 127.0.0.1:8000:8000 \
               -v ${{ github.event.repository.name }}_data:/app/data \
               --network app \
               --env-file /home/${{ secrets.REMOTE_USER }}/docker-configs/${{ github.event.repository.name }}/.env \
               --restart unless-stopped \
-              ${{ github.event.repository.name }}:latest
+              ${{ github.event.repository.name }}:latest)
+            
+            # Проверяем, запустился ли контейнер
+            echo "ID контейнера: $CONTAINER_ID"
+            
+            # Ждем 5 секунд для запуска контейнера
+            sleep 5
+            
+            # Проверяем статус контейнера
+            echo "Статус контейнера:"
+            docker ps -a | grep ${{ github.event.repository.name }}
+            
+            # Проверяем логи контейнера
+            echo "Логи контейнера (последние 30 строк):"
+            docker logs --tail 30 ${{ github.event.repository.name }}
+            
+            # Проверяем, есть ли ошибки в логах
+            echo "Проверка ошибок в логах:"
+            docker logs ${{ github.event.repository.name }} 2>&1 | grep -i "error\|exception\|fail" | tail -n 10
+            
+            # Проверяем сетевые подключения контейнера
+            echo "Сетевые подключения контейнера:"
+            docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${{ github.event.repository.name }}
           EOF
