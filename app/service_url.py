@@ -9,5 +9,6 @@ SERVICE_URLS = {
     }
 }
 
+
 def get_url_loki():
     return SERVICE_URLS[ENV]["loki"]

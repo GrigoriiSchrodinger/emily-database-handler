@@ -25,6 +25,7 @@ class AllNews(Base):
     queue_entries = relationship("Queue", back_populates="all_news")
     moderators_queue = relationship("ModeratorsQueue", back_populates="all_news")
 
+
 class SendNews(Base):
     __tablename__ = "send_news"
 
@@ -33,6 +34,7 @@ class SendNews(Base):
     created_at = Column(DateTime, default=datetime.datetime.now())
 
     all_news = relationship("AllNews", back_populates="send_news")
+
 
 class ModifiedText(Base):
     __tablename__ = "modified_text"
@@ -51,6 +53,7 @@ class Queue(Base):
 
     all_news = relationship("AllNews", back_populates="queue_entries")
 
+
 class ModeratorsQueue(Base):
     __tablename__ = "moderators_queue"
 
@@ -59,6 +62,7 @@ class ModeratorsQueue(Base):
     sending_time = Column(DateTime)
 
     all_news = relationship("AllNews", back_populates="moderators_queue")
+
 
 class Setting(Base):
     __tablename__ = "Setting"

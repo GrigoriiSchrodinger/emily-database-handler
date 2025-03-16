@@ -5,6 +5,7 @@ from .. import schemas
 from ..cruds import send_news_crud
 from ..database import SessionLocal
 
+
 def get_db():
     db = SessionLocal()
     try:
@@ -12,14 +13,17 @@ def get_db():
     finally:
         db.close()
 
+
 router = APIRouter(
     prefix="/send-news",
     tags=["send-news"]
 )
 
+
 @router.post("/create", response_model=schemas.PostBase)
 def create_send_news(post: schemas.SendPost, db: Session = Depends(get_db)):
     return send_news_crud.create_send_news(db=db, post=post)
+
 
 @router.get("/get-news/by/hours", response_model=schemas.PostSendNewsList)
 def get_send_news_by_24_hours(db: Session = Depends(get_db)):

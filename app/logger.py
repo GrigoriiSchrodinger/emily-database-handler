@@ -30,7 +30,7 @@ class LokiHandler(logging.Handler):
                     tags[key] = str(value)
 
             log_entry = self.format(record)
-            
+
             payload = {
                 "streams": [
                     {
@@ -47,7 +47,7 @@ class LokiHandler(logging.Handler):
                     }
                 ]
             }
-            
+
             headers = {'Content-Type': 'application/json'}
             response = requests.post(self.url, data=json.dumps(payload), headers=headers)
             response.raise_for_status()

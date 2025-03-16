@@ -1,11 +1,12 @@
 from sqlalchemy.orm import Session
+
 from app import models
 from app.logger import logger
 
 
 def get_media_by_channel_id(db: Session, channel: str, id_post: int):
     logger.debug(
-        "Начало получения медиа из БД", 
+        "Начало получения медиа из БД",
         extra={"tags": {"channel": channel, "id_post": id_post}}
     )
     try:
@@ -16,7 +17,7 @@ def get_media_by_channel_id(db: Session, channel: str, id_post: int):
 
         if not media:
             logger.warning(
-                "Медиа не найдены в базе данных", 
+                "Медиа не найдены в базе данных",
                 extra={"tags": {"channel": channel, "id_post": id_post}}
             )
             return []
@@ -26,17 +27,17 @@ def get_media_by_channel_id(db: Session, channel: str, id_post: int):
             list_media.extend(media.image)
         if media.video:
             list_media.extend(media.video)
-        
+
         logger.info(
             f"Успешно получено {len(list_media)} медиафайлов",
             extra={"tags": {"channel": channel, "id_post": id_post}}
         )
         return list_media
-        
+
     except Exception as e:
         logger.error(
-            "Ошибка запроса к базе данных", 
-            extra={"tags": {"error": str(e), "channel": channel}}, 
+            "Ошибка запроса к базе данных",
+            extra={"tags": {"error": str(e), "channel": channel}},
             exc_info=True
         )
         raise
@@ -44,7 +45,7 @@ def get_media_by_channel_id(db: Session, channel: str, id_post: int):
 
 def add_media_file(db: Session, media: list, id_post: int, channel: str):
     logger.debug(
-        "Начало добавления медиа в БД", 
+        "Начало добавления медиа в БД",
         extra={"tags": {"id_post": id_post, "channel": channel}}
     )
     try:
@@ -68,7 +69,7 @@ def add_media_file(db: Session, media: list, id_post: int, channel: str):
 
         db.commit()
         db.refresh(db_post)
-        
+
         logger.info(
             f"Добавлено {len(list_image)} изображений и {len(list_video)} видео",
             extra={"tags": {
@@ -79,11 +80,11 @@ def add_media_file(db: Session, media: list, id_post: int, channel: str):
             }}
         )
         return db_post
-        
+
     except Exception as e:
         logger.error(
-            "Ошибка сохранения в базу данных", 
-            extra={"tags": {"error": str(e), "id_post": id_post}}, 
+            "Ошибка сохранения в базу данных",
+            extra={"tags": {"error": str(e), "id_post": id_post}},
             exc_info=True
         )
         db.rollback()

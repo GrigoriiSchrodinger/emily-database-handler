@@ -30,6 +30,7 @@ def get_db():
     finally:
         db.close()
 
+
 @router.post("/upload/{id_post}/{channel}", response_model=schemas.UploadMediaResponse)
 async def upload_media(id_post: int, channel: str, files: List[UploadFile] = File(...), db: Session = Depends(get_db)):
     """
@@ -97,6 +98,7 @@ async def upload_media(id_post: int, channel: str, files: List[UploadFile] = Fil
         },
         status_code=200
     )
+
 
 @router.post("/download/{id_post}/{channel}")
 async def download_media(id_post: int, channel: str, db: Session = Depends(get_db)):

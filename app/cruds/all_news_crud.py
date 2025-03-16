@@ -1,15 +1,15 @@
 from sqlalchemy.exc import NoResultFound, SQLAlchemyError
 from sqlalchemy.orm import Session
-from app.logger import logger
 
-from .. import schemas, models
 from app.cruds.crud import generate_unique_number
+from app.logger import logger
+from .. import schemas, models
 
 
 def create_post(db: Session, post: schemas.NewPost):
     try:
         logger.info(
-            "Creating new post", 
+            "Creating new post",
             extra={"tags": {"channel": post.channel, "id_post": post.id_post}}
         )
         db_post = models.AllNews(
@@ -25,17 +25,18 @@ def create_post(db: Session, post: schemas.NewPost):
         db.commit()
         db.refresh(db_post)
         logger.info(
-            "Post created successfully", 
+            "Post created successfully",
             extra={"tags": {"seed": db_post.seed, "channel": post.channel}}
         )
         return db_post
     except SQLAlchemyError as e:
         logger.error(
-            "Error creating post", 
+            "Error creating post",
             extra={"tags": {"error": str(e), "channel": post.channel}},
             exc_info=True
         )
         raise
+
 
 def get_post_details_by_seed(db: Session, seed: str):
     try:
@@ -44,7 +45,7 @@ def get_post_details_by_seed(db: Session, seed: str):
 
         modified_text = db.query(models.ModifiedText).filter(models.ModifiedText.seed == seed).first()
         logger.debug(
-            "Modified text check", 
+            "Modified text check",
             extra={"tags": {"exists": modified_text is not None, "seed": seed}}
         )
         new_content = modified_text.text if modified_text else None
@@ -61,36 +62,38 @@ def get_post_details_by_seed(db: Session, seed: str):
         return None
     except Exception as e:
         logger.error(
-            "Error fetching post details", 
+            "Error fetching post details",
             extra={"tags": {"seed": seed, "error": str(e)}},
             exc_info=True
         )
         raise
 
+
 def get_post_details_by_channel_id_post(db: Session, channel: str, id_post: int):
     logger.info(
-        "Generating seed for channel/id_post", 
+        "Generating seed for channel/id_post",
         extra={"tags": {"channel": channel, "id_post": id_post}}
     )
     seed = generate_unique_number(channel=channel, id_post=id_post)
     return get_post_details_by_seed(db=db, seed=seed)
 
+
 def get_post_by_channel_id(db: Session, channel: str, id_post: int):
     try:
         logger.info(
-            "Searching post by channel/id", 
+            "Searching post by channel/id",
             extra={"tags": {"channel": channel, "id_post": id_post}}
         )
         unique_number = generate_unique_number(channel=channel, id_post=id_post)
         result = db.query(models.AllNews).filter(models.AllNews.seed == unique_number).first()
         logger.debug(
-            "Post search result", 
+            "Post search result",
             extra={"tags": {"found": result is not None, "channel": channel}}
         )
         return result
     except SQLAlchemyError as e:
         logger.error(
-            "Database error in post search", 
+            "Database error in post search",
             extra={"tags": {"channel": channel, "error": str(e)}},
             exc_info=True
         )

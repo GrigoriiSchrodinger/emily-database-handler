@@ -1,8 +1,8 @@
 from sqlalchemy.orm import Session
 
-from .. import schemas, models
 from app.cruds.crud import generate_unique_number
 from app.logger import logger
+from .. import schemas, models
 
 
 def create_modified_news(db: Session, post: schemas.ModifiedPost):
@@ -22,11 +22,12 @@ def create_modified_news(db: Session, post: schemas.ModifiedPost):
         db.rollback()
         raise
 
+
 def update_text_news(db: Session, post: schemas.UpdateModifiedPost):
     try:
         seed = generate_unique_number(channel=post.channel, id_post=post.id_post)
         logger.debug(f"Обновление текста новости. Seed: {seed}")
-        
+
         modified_text = db.query(models.ModifiedText).filter(models.ModifiedText.seed == seed).first()
 
         if not modified_text:
