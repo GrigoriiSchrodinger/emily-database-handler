@@ -43,12 +43,14 @@ jobs:
           docker rm ${{ github.event.repository.name }} || true
         
           # Создаем .env файл на сервере с секретами из GitHub Actions
-          cat > /path/to/deployment/.env << EOL
+        cat > /home/${{ secrets.REMOTE_USER }}/docker-configs/${{ github.event.repository.name }}/.env << EOL
         ENV=production
+        EOL
           
           # Запускаем новый контейнер с подключенным volume и сетью
           docker run -d \
             --name ${{ github.event.repository.name }} \
+            --env-file /home/${{ secrets.REMOTE_USER }}/docker-configs/${{ github.event.repository.name }}/.env \
             -p 127.0.0.1:8000:8000 \
             -v ${{ github.event.repository.name }}_data:/app/data \
             --network app \
