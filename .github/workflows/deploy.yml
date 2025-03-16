@@ -64,6 +64,6 @@ jobs:
               --env-file /home/${{ secrets.REMOTE_USER }}/docker-configs/${{ github.event.repository.name }}/.env \
               -v ${{ github.event.repository.name }}_data:/app/data \
               --network app \
-              -p 8100:8100 \
+              -p 8000:8000 \
               ${{ github.event.repository.name }}:latest
           EOF
