@@ -55,8 +55,8 @@ jobs:
           
             # Создаем .env файл на сервере с секретами из GitHub Actions
             cat > /home/${{ secrets.REMOTE_USER }}/docker-configs/${{ github.event.repository.name }}/.env << 'ENVEOF'
-ENV=production
-ENVEOF
+            ENV=production
+            ENVEOF
 
             # Проверяем образ
             echo "Проверка наличия образа:"
