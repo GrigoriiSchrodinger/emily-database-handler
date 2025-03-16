@@ -54,9 +54,9 @@ jobs:
             mkdir -p /home/${{ secrets.REMOTE_USER }}/docker-configs/${{ github.event.repository.name }}
           
             # Создаем .env файл на сервере с секретами из GitHub Actions
-            cat > /home/${{ secrets.REMOTE_USER }}/docker-configs/${{ github.event.repository.name }}/.env << 'ENVEOF'
-            ENV=production
-            ENVEOF
+          cat > /home/${{ secrets.REMOTE_USER }}/docker-configs/${{ github.event.repository.name }}/.env << EOL
+          ENV=production
+          EOL
 
             # Проверяем образ
             echo "Проверка наличия образа:"
