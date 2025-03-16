@@ -54,9 +54,9 @@ jobs:
             mkdir -p /home/${{ secrets.REMOTE_USER }}/docker-configs/${{ github.event.repository.name }}
           
             # Создаем .env файл на сервере с секретами из GitHub Actions
-            cat > /home/${{ secrets.REMOTE_USER }}/docker-configs/${{ github.event.repository.name }}/.env << EOL
-            ENV=production
-            EOL
+            cat > /home/${{ secrets.REMOTE_USER }}/docker-configs/${{ github.event.repository.name }}/.env << 'ENVEOF'
+ENV=production
+ENVEOF
 
             # Проверяем образ
             echo "Проверка наличия образа:"
@@ -86,4 +86,8 @@ jobs:
             # Проверяем логи контейнера
             echo "Логи контейнера (последние 30 строк):"
             docker logs --tail 30 ${{ github.event.repository.name }}
+            
+            # Проверяем, есть ли ошибки в логах
+            echo "Проверка ошибок в логах:"
+            docker logs ${{ github.event.repository.name }} 2>&1 | grep -i "error\|exception\|fail" | tail -n 10 || echo "Ошибок не найдено"
           EOF
