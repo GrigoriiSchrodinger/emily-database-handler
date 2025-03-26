@@ -30,7 +30,7 @@ def get_texts_last_24_hours_queue(db: Session):
     logger.info("Запрос последних текстов за 24 часа из очереди",
                 extra={"tags": {"operation": "get_texts_last_24h"}})
     try:
-        result = get_post_text_last_6_hours(db, models.Queue)
+        result = get_post_text_last_6_hours(db, models.Queue, time_offset=3)
         logger.debug(f"Получено {len(result)} записей из очереди",
                      extra={"tags": {"operation": "get_texts_last_24h"}})
         return result

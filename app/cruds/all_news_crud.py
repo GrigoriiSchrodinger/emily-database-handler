@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from app.cruds.crud import generate_unique_number
 from app.logger import logger
 from .. import schemas, models
+from ..schemas import GetRelationshipIdMessage
 
 
 def create_post(db: Session, post: schemas.NewPost):
@@ -37,6 +38,73 @@ def create_post(db: Session, post: schemas.NewPost):
         )
         raise
 
+def create_relationship_news(db: Session, news: schemas.RelationshipNews) -> schemas.RelationshipNewsResult:
+    try:
+        logger.info(
+            "Creating relationship between news",
+            extra={"tags": {"seed_news": news.seed_news, "related_seed": news.related_new_seed}}
+        )
+
+        related_news = db.query(models.AllNews).filter(
+            models.AllNews.seed == news.related_new_seed
+        ).first()
+
+        if not related_news:
+            logger.warning(
+                "Related news not found",
+                extra={"tags": {"related_seed": news.related_new_seed}}
+            )
+            return schemas.RelationshipNewsError(
+                status="error",
+                message="Related news not found"
+            )
+
+        # Обновляем tied для основной новости
+        db.query(models.AllNews).filter(
+            models.AllNews.seed == news.seed_news
+        ).update({
+            models.AllNews.tied: related_news.message_id
+        })
+
+        db.commit()
+
+        logger.info(
+            "Relationship created successfully",
+            extra={"tags": {
+                "seed_news": news.seed_news,
+                "related_seed": news.related_new_seed,
+                "message_id": related_news.message_id
+            }}
+        )
+
+        return schemas.RelationshipNewsResponse(
+            status="success",
+            seed_news=news.seed_news,
+            related_seed=news.related_new_seed,
+            message_id=related_news.message_id
+        )
+
+    except SQLAlchemyError as e:
+        logger.error(
+            "Error creating relationship",
+            extra={"tags": {
+                "error": str(e),
+                "seed_news": news.seed_news,
+                "related_seed": news.related_new_seed
+            }},
+            exc_info=True
+        )
+        db.rollback()
+        raise
+
+
+def get_related_news(db: Session, seed: str) -> GetRelationshipIdMessage:
+    news = db.query(models.AllNews).filter(models.AllNews.seed == seed).first()
+
+    if news and news.tied:
+        return GetRelationshipIdMessage(tied=news.tied)
+
+    return GetRelationshipIdMessage(tied=False)
 
 def get_post_details_by_seed(db: Session, seed: str):
     try:

@@ -14,6 +14,8 @@ class AllNews(Base):
     text = Column(String, nullable=False)
     channel = Column(String, nullable=False)
     id_post = Column(Integer, nullable=False)
+    message_id = Column(Integer, nullable=True)
+    tied = Column(Integer, nullable=True)
     time = Column(DateTime, default=datetime.datetime.now())
     url = Column(String, nullable=False)
     outlinks = Column(JSON, nullable=False)

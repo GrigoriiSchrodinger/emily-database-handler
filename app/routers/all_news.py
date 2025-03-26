@@ -25,16 +25,21 @@ def get_db():
 def create_user(post: schemas.NewPost, db: Session = Depends(get_db)):
     return all_news_crud.create_post(db=db, post=post)
 
+@router.post("/create-relationship", response_model=schemas.RelationshipNewsResult)
+def create_relationship_news(news: schemas.RelationshipNews, db: Session = Depends(get_db)):
+    return all_news_crud.create_relationship_news(db=db, news=news)
+
+@router.get("/related-news/{seed}", response_model=schemas.GetRelationshipIdMessage)
+def get_related_news(seed: str, db: Session = Depends(get_db)):
+    return all_news_crud.get_related_news(seed=seed, db=db)
 
 @router.get("/detail-by-seed/{seed}", response_model=schemas.DetailBySeedResponse)
 def get_detail_news_by_seed(seed: str, db: Session = Depends(get_db)):
     return all_news_crud.get_post_details_by_seed(seed=seed, db=db)
 
-
 @router.get("/detail-by-channel-id_post/{channel}/{id_post}", response_model=schemas.DetailByChannelIdPostResponse)
 def get_detail_news_by_channel_id_post(channel: str, id_post: int, db: Session = Depends(get_db)):
     return all_news_crud.get_post_details_by_channel_id_post(channel=channel, id_post=id_post, db=db)
-
 
 @router.get("/exists-news/{channel}/{id_post}", response_model=NewsExists)
 def check_post_exists(channel: str, id_post: int, db: Session = Depends(get_db)):

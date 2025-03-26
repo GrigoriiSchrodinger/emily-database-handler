@@ -15,17 +15,17 @@ def generate_unique_number(id_post: int, channel: str) -> str:
     return result
 
 
-def get_6_hours():
+def get_6_hours(time_offset: int = 10):
     logger.debug("Расчет временного интервала", extra={"tags": {"service": "time_calculation", "hours_offset": 10}})
-    result = datetime.datetime.now() - datetime.timedelta(hours=10)
+    result = datetime.datetime.now() - datetime.timedelta(hours=time_offset)
     return result
 
 
-def get_post_text_last_6_hours(db: Session, model):
+def get_post_text_last_6_hours(db: Session, model, time_offset: int = 10):
     logger.debug("Начало запроса к БД", extra={"tags": {"db_query": True, "model": model.__name__}})
 
     try:
-        time_filter = get_6_hours()
+        time_filter = get_6_hours(time_offset=time_offset)
         query = db.query(model).filter(model.created_at >= time_filter)
 
         logger.debug("Выполнение SQL запроса", extra={"tags": {

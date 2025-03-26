@@ -13,22 +13,29 @@ def create_send_news(db: Session, post: schemas.SendPost):
         extra={"tags": {"function": "create_send_news", "post_id": post.id_post, "channel": post.channel}}
     )
     try:
+        seed = generate_unique_number(post.id_post, post.channel)
         db_post = models.SendNews(
-            seed=generate_unique_number(post.id_post, post.channel),
+            seed=seed,
             created_at=datetime.datetime.now()
         )
         db.add(db_post)
         db.commit()
         db.refresh(db_post)
+
+        all_news_entry = db.query(models.AllNews).filter(models.AllNews.seed == seed).first()
+        if all_news_entry:
+            all_news_entry.message_id = post.message_id
+            db.commit()
+
         logger.debug(
-            "Успешно создана запись SendNews",
+            "Успешно создана запись SendNews и обновлена запись AllNews",
             extra={
                 "tags": {"function": "create_send_news", "seed": db_post.seed, "created_at": str(db_post.created_at)}}
         )
         return db_post
     except Exception as e:
         logger.error(
-            "Ошибка при создании записи SendNews",
+            f"Ошибка при создании записи SendNews - {e}",
             extra={"tags": {"function": "create_send_news"}},
             exc_info=True
         )
@@ -49,7 +56,7 @@ def get_texts_last_24_hours_send_news(db: Session):
         return result
     except Exception as e:
         logger.error(
-            "Ошибка при получении текстов SendNews",
+            f"Ошибка при получении текстов SendNews {e}",
             extra={"tags": {"function": "get_texts_last_24_hours_send_news"}},
             exc_info=True
         )
