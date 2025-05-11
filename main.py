@@ -52,7 +52,7 @@ if __name__ == "__main__":
     try:
         import uvicorn
 
-        logging.debug("Starting uvicorn")
+        logging.debug("Starting uvicorn ")
         uvicorn.run("main:app", host="0.0.0.0", port=settings.PORT, reload=True)
     except Exception as error:
         logging.error(error)
